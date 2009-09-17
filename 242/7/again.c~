@@ -1,0 +1,32 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define ARRAY_SIZE 10000
+#define STRING_LENGTH 80
+
+void *emalloc(size_t s)
+{
+  void *result = malloc(s);
+  if(NULL == result){
+    fprintf(stderr,"memory allocation failed");
+    exit(EXIT_FAILURE);
+  }
+  return result;
+}
+
+void print_nums(char *a, int n)
+{
+}
+
+int main(void)
+{
+  char *wordlist[ARRAY_SIZE];
+  char word[STRING_LENGTH];
+  int num_words = 0, i;
+
+  while(num_words < ARRAY_SIZE && 1 == scanf("%s",word)){
+    wordlist[num_words] = emalloc(strlen(word) + 1 * sizeof wordlist[0][0]);
+    strcpy(word,wordlist[num_words]);
+    num_words++;
+    }

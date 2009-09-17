@@ -1,0 +1,29 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "mylib.h"
+#include "flexarray.h"
+
+struct flexarrayrec
+{
+  int capacity;
+  int itemcount;
+  int *items;
+};
+
+flexarray flexarray_new()
+{
+  flexarray result = emalloc(sizeof *result);
+  result->capacity =2;
+  result->itemcount = 0;
+  result->items = emalloc(result->capacity * sizeof result->items[0]);
+  return result;
+}
+
+void flexarray_append(flexarray f, int num)
+{
+  if(f->itemcount == f -> capacity)
+    {
+      f->capacity += f->capacity;
+      f->items = erealloc(f->items,capacity * sizeof f->items[0]);
+    }
