@@ -1,0 +1,20 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+	  "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>Form</title>
+  </head>
+  <body>
+    <h1 style=" font-size: small; margin-left:360px;">What do you want to know?</h1>
+    <FORM action="http://dev212.otago.ac.nz:8080/lchisholm/lab04/formphp.php" method="get">
+      <div style="width: 700px; margin-left: auto;margin-right: auto;border:2px solid;">
+	<p>Show me:</p>
+	<INPUT type="radio" name="processes" value="plain"> All running processes<BR>
+        <INPUT type="radio" name="processes" value="withuser"> Processes for user
+	<INPUT type="text" name="user"><BR>
+      </div>
+      <p><INPUT type="submit" value="Find stuff out" style="margin-left: 360px;"></p>
+    </FORM>
+  </body>
+</html>
