@@ -1,0 +1,68 @@
+#include <stdlib.h>
+#include "queue.h"
+#include "mylib.h"
+
+struct queuerec{
+   int *items;/* what is being held in the queue*/
+   int size;
+   int start;
+   int end;
+   int num_items;
+};
+   
+queue queue_new(int size){
+   queue result = emalloc(sizeof *result);
+   result->items = emalloc(sizeof result->items[0] * size);
+   result->size = size;
+   result->num_items = 0;
+   result->start = size-1;
+   result->end = size;
+   return result;
+}
+int queue_get_first(queue q){
+   return q->start;
+}
+queue queue_remove_first(queue q){
+   q->items[q->start] = 0;
+   q->start--;
+   if(q->start == -1){
+      q->start = q->size -1;
+   }
+   q->num_items--; 
+   return q;
+}
+
+queue queue_add(queue q,int item){
+   q->end--;
+   if(q->end == -1){
+      q->end = q->size -1;
+      q->items[q->end] = item;
+   }else{
+      q->items[q->end] = item;
+   }
+   q->num_items++;
+   return q;
+}
+
+void print_queue(queue q){
+   int i;
+   for(i = q->start;;i--){
+      if(i == -1){
+         i= q->size-1;
+      }
+      printf("%d\n",q->items[i]);
+      if(i == q->end){
+         break;
+      }
+   }
+}
+
+int queue_empty(queue q){
+   return q->num_items == 0 ? 1 : 0;
+}
+
+queue queue_delete(queue q){
+   free(q->items);
+   free(q);
+   return q;
+}
