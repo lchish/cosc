@@ -1,8 +1,9 @@
 <?php
 require 'private/session.php';
+require 'private
 $_SESSION = array();
 session_destroy();
-setcookie('sellit',"",time()-3600,'/~leslie/projects');
+setcookie('sellit',"",time()-3600,$cookiename);
 ?>
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
