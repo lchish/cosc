@@ -1,0 +1,51 @@
+\documentclass[12pt]{article} % Please don't change the font size!
+
+\setlength{\textheight}{24cm}
+
+\begin{document}
+
+\pagestyle{empty} % we don't need a page number for a single page
+
+\begin{center}
+\section*{Hash-table report}
+\end{center}
+
+\section{Linear Probing and Double Hashing}
+
+Two methods are used in my hash-table to calculate where a key
+should be stored if a key is already in the position the new
+key hashes to. Linear probing looks at the next adjacent space
+in the hash table to see if that is free, wheras double hashing
+creates a new hash for the key and offsets the next space it will
+probe by the hash. 
+
+Linear probing has the advantage that it is easy to calculate the
+next step and is easy to implement, but has a drawback that if many
+keys hash to the same value they will all be put in one after another
+creating large areas where the hash table is full and empty, also 
+causing alot of collisions to happen when another key is inserted
+that hashes to around the same value. Double hashing gets around 
+this problem by creating a different step for each key so it is 
+less likely that the keys get bunched up in the hash table. This 
+means collisions are less likely to happen and will therefore be
+faster to insert and search keys.
+
+Running the program on a very large text file proved this theory as 
+the average number of collisions using double hashing was approximately
+half of linear probing.
+
+\section{Implementation}
+
+My hash table implementation is very basic containing only only insert,
+search and delete and able to use only linear probing and double hashing
+as collision reduction techniques. It could have been improved by adding
+a remove function to allow keys to be removed from the table and
+implementing chaining, so if a key collides with another they are put
+into a linked list containing all keys that hash to the same value. 
+The size limit of the hash table could also be removed if it could
+dynamically create a new hash table when the old one runs out of space,
+rehashing all of the old keys into a new hash table.
+
+\subsection*{BE VERY CAREFUL NOT TO EXCEED 1 PAGE!}
+
+\end{document}

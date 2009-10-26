@@ -1,0 +1,40 @@
+/*css file for web_development.html*/
+
+body{
+    font-family: helvetica, Arial, sans-serif;
+    margin-left:10%;
+    margin-right:10%; 
+    text-align:justify;
+}
+p{
+    font-size: 95%;
+}
+.a{
+    text-indent: 2em;
+}
+h1{
+    background: black;
+    color:white;
+    text-align: center;
+}
+#left{
+    float:left;
+width:48%
+}
+
+#right{
+    float:right;
+margin-left:4%;
+width:48%
+
+}
+#foot{
+    clear:both;
+    text-align:center;
+}
+hr{
+    color:black;
+    border: 0;
+    background-color:black;
+    height:5px;
+}

@@ -1,0 +1,185 @@
+/**
+ * @file htable-main.c
+ * @author Leslie Chisholm
+ * @date September 2009
+ *
+ * This program is written to test the hash-table ADT specified in the
+ * Cosc242 programming assignment.  It can create a
+ * hash-table which uses linear-probing or double-hashing as collision
+ * resolution strategie.  Various options are provided which make it
+ * possible to examine a hash-table and see how it performs. It uses
+ * the hash-table ADT to create a new hash-table fill it with words,
+ * examine it in various ways, and then destroy it.
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <getopt.h>
+#include <time.h>
+#include "mylib.h"
+#include "htable.h"
+
+/** A boolean type <b>bool_t</b> which can be TRUE or FALSE ...orly*/
+typedef enum bool_e {FALSE, TRUE} bool_t;
+
+/* function declarations */
+static void usage(char *progname);
+static void set_flags(int argc, char **argv,bool_t *do_spell_check,
+		      char **filename, bool_t *double_hashing,
+                      bool_t *entire_table, bool_t *print_stats,
+                      int *snapshots, int *tablesize);
+static void spell_check(htable ht, char *filename, double fill_time);
+
+/**
+ *
+ Creates a hashtable, and inserts words into it.
+ The table is then printed before we free the memory allocated to it.
+
+ Note: The tablesize of the hashtable is determined by the first command line
+ argument if there is one, with a default table tablesize of 113.
+ The number of statistical snapshots to print is determined by the second
+ command line argument if there is one, with a default number of 10.
+
+ tablesize = the maximum number of positions in the hash table.
+ word      = the string to be inserted into the hash table.
+ ht        = the hash table using eith double hashing or linear probing.
+ snapshots = the number of statistical snapshots to be used.
+
+ @param argc the number of command-line arguments.
+ @param argv an array of strings containing the command-line arguments.
+
+ @return EXIT_SUCCESS if the program is successful.
+
+*/
+int main(int argc, char **argv) {
+  time_t start,end;
+  bool_t entire_table = FALSE, double_hashing = FALSE, print_stats = FALSE,
+    do_spell_check = FALSE;
+  int tablesize = 113, snapshots = 10;
+  char word[256];
+  char *filename;
+  htable ht;
+
+  set_flags(argc, argv, &do_spell_check, &filename, &double_hashing, &entire_table,
+	    &print_stats, &snapshots, &tablesize);
+
+  ht = htable_new(tablesize, (double_hashing) ? DOUBLE_H : LINEAR_P);
+  start = clock();
+  while (getword(word, sizeof word, stdin) != EOF) {
+    htable_insert(ht, word);
+  }
+  end = clock();
+  if(do_spell_check) {
+    spell_check(ht,filename,(end-start)/(double)CLOCKS_PER_SEC);
+  }
+  if (entire_table) {
+    htable_print_entire_table(ht, stderr);
+  }
+  if (print_stats) {
+    htable_print_stats(ht, stdout, snapshots);
+  } else if (!do_spell_check){ /* print words and frequencies */
+    htable_print(ht, stdout);
+  }
+  htable_delete(ht);
+
+  return EXIT_SUCCESS;
+}
+
+/**
+ * Prints out a usage message outlining all of the options to stderr.
+ * @param prog_name the name of the program to include in usage message.
+ */
+static void usage(char *prog_name) {
+  fprintf(stderr, "Usage: %s [OPTION]... <STDIN>\n\n%s%s", prog_name,
+	  "Perform various operations using a hash-table.  By default read\n"
+	  "words from stdin & print them with their freqencies to stdout.\n\n"
+	  " -c FILENAME  Check spelling of words in FILENAME using words\n"
+	  "              from stdin as dictionary.  Print unknown words to\n"
+	  "              stdout, timing info & count to stderr (ignore -p)\n"
+	  " -d           Use double hashing (linear probing is the default)\n"
+	  " -e           Display entire contents of hash-table on stderr\n"
+	  " -p           Print stats info instead of frequencies & words\n",
+	  " -s SNAPSHOTS Show SNAPSHOTS stats snapshots (if -p is used)\n"
+	  " -t TABLESIZE Use the first prime >= TABLESIZE as htable size\n\n"
+	  " -h           Display this message\n\n");
+}
+
+/**
+ * Handle options given on the command-line by setting a number of
+ * variables appropriately.  See the message printed by usage() for
+ * the meaning of the options.
+ *
+ * @param argc the number of command-line arguments.
+ * @param argv an array of strings contain the command-line arguments.
+ * @param do_spell_check set to TRUE of -c given.
+ * @param filename set to first argument after the -c option.
+ * @param double_hashing set to TRUE if -d given
+ * @param entire_table set to TRUE if -e given
+ * @param print_stats set to TRUE if -p given
+ * @param snapshots set to INTEGER if -s INTEGER given and INTEGER > 0
+ * @param tablesize set to INTEGER if -t INTEGER given and INTEGER > 0
+ */
+static void set_flags(int argc, char **argv,bool_t *do_spell_check,
+		      char **filename, bool_t *double_hashing,
+                      bool_t *entire_table, bool_t *print_stats,
+                      int *snapshots, int *tablesize) {
+  const char *optstring = "c:dept:s:h";
+  char option;
+  int tmp_value;
+
+  while ((option = getopt(argc, argv, optstring)) != EOF) {
+    switch (option) {
+    case 'c':
+      *filename = optarg;
+      *do_spell_check = TRUE;
+      break;
+    case 'd':
+      *double_hashing = TRUE;
+      break;
+    case 'e':
+      *entire_table = TRUE;
+      break;
+    case 'p':
+      *print_stats = TRUE;
+      break;
+    case 't':
+      tmp_value = atoi(optarg);
+      if (tmp_value > 0) *tablesize = tmp_value;
+      break;
+    case 's':
+      tmp_value = atoi(optarg);
+      if (tmp_value > 0) *snapshots = tmp_value;
+      break;
+    case 'h':
+    default:
+      usage(argv[0]);
+    exit(EXIT_SUCCESS);
+    }
+  }
+}
+/**
+ * Spell check a file using a hash-table dictionary.
+ * Prints all words not in the dictionary to stdout and statistics to stderr.
+ * @param ht hash-table to use as a dictionary.
+ * @param filename name of file to be spell-checked.
+ * @param fill_time time taken to fill the dictionary.
+ */
+static void spell_check(htable ht, char *filename, double fill_time){
+  clock_t start,end;
+  char word[256];
+  int unknown_words = 0;
+  FILE *file = efopen(filename,"r");
+  start = clock();
+  while ((getword(word, sizeof word, file)) != EOF) {
+    if(htable_search(ht,word) == 0){/* word not found */
+      printf("%s\n",word);
+      unknown_words++;
+    }
+  }
+  end = clock();
+  fclose(file);
+  fprintf(stderr,
+	  "Fill time\t:%f\nSearch time\t:%f\n"
+	  "Unknown words = %d\n",fill_time,
+	  (end-start)/(double)CLOCKS_PER_SEC,unknown_words);
+}

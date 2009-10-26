@@ -1,0 +1,12 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(int argc, char **argv)
+{
+  int i;
+  int max = (int)argv[1];
+  for(i = 0; i < max){
+    printf(rand());
+  }
+  return EXIT_SUCCESS;
+}

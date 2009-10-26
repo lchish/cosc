@@ -1,0 +1,137 @@
+/**
+ * @file tree-main.c
+ * @author Leslie Chisholm
+ * @date September 2009
+ * 
+ * This program is written to test the tree ADT specified in the
+ * Cosc242 programming assignment.  It uses the tree ADT to create
+ * either a BST or RBT, and calls functions to fill it with words,
+ * examine it in various ways, and then destroy it.
+ */
+#include <stdio.h>
+#include <stdlib.h>
+#include <getopt.h>
+#include <time.h>
+#include "mylib.h"
+#include "tree.h"
+
+/**
+ * Prints out a usage message outlining all of the options to stderr.
+ * @param prog_name the name of the program to include in usage message.
+ */
+static void usage(char *prog_name) {
+  fprintf(stderr, "Usage: %s [OPTION]... <STDIN>\n\n%s%s", prog_name,
+	  "Perform various operations using a binary tree.  By default\n"
+	  "read words from stdin & print them in pre-order to stdout.\n\n"
+	  " -c FILENAME  Check spelling of words in FILENAME using words\n"
+	  "              read from stdin as the dictionary.  Print timing\n"
+	  "              info & unknown words to stderr (ignore -d & -o)\n"
+	  " -d           Only print the tree depth (ignore -o)\n"
+	  " -f FILENAME  Write DOT output to FILENAME (if -o given)\n",
+	  " -o           Output the tree in DOT form to file 'dot-tree'\n"
+	  " -r           Make the tree an RBT (the default is a BST)\n\n"
+	  " -h           Print this message\n\n");
+}
+
+static void print_graph(char *filename, tree t) {
+  FILE *file = efopen(filename, "w");
+  fprintf(stderr, "Creating dot file '%s'\n", filename);
+  tree_output_dot(t, file);
+  fclose(file);
+}
+
+/**
+ * Prints out a given string.
+ *
+ * @param key the string to be printed. 
+ */
+static void print_key(char *key) {
+  printf("%s\n", key);
+}
+/**
+ * Spell check a file using a tree dictionary.
+ * Prints all words not in the dictionary to stdout and statistics to stderr.
+ * @param filename name of file to be spell-checked.
+ * @param dictionary tree to use as a dictionary.
+ * @param fill_time time taken to fill the dictionary.
+ */
+static void spell_check(char *filename,tree dictionary,double fill_time){
+  clock_t start,end;
+  char word[256];
+  int unknown_words = 0;
+  FILE *file = efopen(filename,"r");
+  start = clock();
+  while ((getword(word, sizeof word, file)) != EOF) {
+    if(tree_search(dictionary,word) == 0){/* word not found */
+      printf("%s\n",word);
+      unknown_words++;
+    }
+  }
+  end = clock();
+  fclose(file);
+  fprintf(stderr,
+	  "Fill time\t:%f\nSearch time\t:%f\n"
+	  "Unknown words = %d\n",fill_time,
+	  (end-start)/(double)CLOCKS_PER_SEC,unknown_words);
+}
+
+/**
+ * Creates a tree and fills it with string values read from STDIN.
+ * Prints the tree in preorder by default, but this can be altered to
+ * output a DOT representation if -o is given as a command-line
+ * argument, or just ouput the depth of the tree when given -d.  For a
+ * detailed description of all options see the message printed by
+ * usage().  All allocated memory is freed before finishing.
+ *
+ * @param argc the number of command-line arguments. 
+ * @param argv an array containing the command-line arguments, which
+ * can be any of the options specified in usage().
+ *
+ * @return the exit status of program (EXIT_SUCCESS or EXIT_FAILURE).
+ */
+int main(int argc, char **argv) {
+  time_t end,start;
+  int output_graph = 0, do_depth = 0,do_spell_check = 0;
+  tree_t tree_type = BST;
+  const char *optstring = "c:df:orh";
+  tree t;
+  char word[256];
+  char *dot_filename = "dot-tree";
+  char *ofile;
+  char option;
+
+  while ((option = getopt(argc, argv, optstring)) != EOF) {
+    if(option == 'c') {
+      ofile = optarg;
+      do_spell_check =1;
+    }else if (option == 'd') {
+      do_depth = 1;
+    } else if (option == 'f') {
+      dot_filename = optarg;
+    } else if (option == 'o') {
+      output_graph = 1;
+    } else if (option == 'r') {
+      tree_type = RBT;
+    } else { /* h or unknown option */
+      usage(argv[0]);
+      return EXIT_FAILURE;
+    }
+  }
+  t = tree_new(tree_type);
+  start = clock();
+  while ((getword(word, sizeof word, stdin)) != EOF) {
+    t = tree_insert(t, word);
+  }
+  end = clock();
+  if(do_spell_check){
+    spell_check(ofile,t,(end-start)/(double)CLOCKS_PER_SEC);
+  }else if (do_depth) {
+    printf("%d\n", tree_depth(t));
+  } else if (output_graph) {
+    print_graph(dot_filename, t);
+  } else {
+    tree_preorder(t, print_key);
+  }
+  t = tree_destroy(t);
+  return EXIT_SUCCESS;
+}

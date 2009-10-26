@@ -1,0 +1,119 @@
+#include <string.h>
+#include <stdlib.h>
+#include "bst.h"
+#include "mylib.h"
+
+struct bstnode
+{
+  char *key;
+  bst left;
+  bst right;
+};
+
+bst bst_new()
+{
+  return NULL;
+}
+
+int bst_search(bst b, char *s)
+{
+  if(b == NULL){
+    return 0;/*not found*/
+  }else if(strcmp(b->key,s) == 0){
+    return 1;/*found*/
+  }else if(strcmp(b->key,s) < 0){/* b->key > s */
+    return bst_search(b->left,s);
+  }else{/* b-key < s*/
+    return bst_search(b->right,s);
+  }
+}
+
+bst bst_insert(bst b,char *s)
+{
+  if(b == NULL){/*empty tree*/
+    b = emalloc(sizeof *b);
+    b->key = emalloc(strlen(s) * sizeof s[0] + 1);
+    strcpy(b->key,s);
+  }else if(strcmp(b->key,s)==0){/*do nothing*/
+  }else if(strcmp(b->key,s) < 0){/*s > b-key */
+    b->right = bst_insert(b->right,s);
+  }
+  else if(strcmp(b->key,s) > 0){/*s < b-key*/
+    b->left = bst_insert(b->left,s);
+  }
+  return b;
+}
+
+void bst_inorder(bst b, void f(char *s))
+{
+  if(b == NULL){
+    return;
+  }else{
+    bst_inorder(b->left,f);
+    f(b->key);
+    bst_inorder(b->right,f);
+  }
+}
+
+void bst_preorder(bst b, void f(char *s))
+{
+  if(b == NULL){
+    return;
+  }else{
+    f(b->key);
+    bst_preorder(b->left,f);
+    bst_preorder(b->right,f);
+  }
+}
+bst bst_remove(bst b, char *s)
+{
+  bst tmp;
+  bst tmp2;
+  if(b == NULL){
+    return b;
+  }else if(strcmp(b->key,s)==0){/*we have found the item in the tree to remove*/
+    if(b->left == NULL && b->right == NULL){
+      free(b->key);
+      free(b);
+      return NULL;
+    }else if(b->left != NULL && b->right == NULL){
+      free(b->key);
+      free(b);
+      return b->left;
+    }else if(b->left == NULL && b->right != NULL){
+      free(b->key);
+      free(b);
+      return b->right;
+    }else{/*node has two children*/
+      tmp = b->right;
+      while(tmp->left != NULL){/*find leftmost child of the right subtree*/
+        tmp = tmp->left;
+      }
+      strcpy(b->key,tmp->key);/*swap the key with the sucessor's key*/
+      b->right = bst_remove(b->right,tmp->key);/*remove tmp*/
+      return b;
+    }
+  }else if(b->right != NULL && strcmp(s,b->key) > 0){/*s > b->key*/
+    b->right = bst_remove(b->right,s);
+    return b;
+  }else if(b->left != NULL && strcmp(s,b->key) < 0){/*s < b->key*/
+    b->left = bst_remove(b->left,s);
+    return b;
+  }
+  else{
+    return b;
+  }
+}
+bst bst_delete(bst b)
+{
+  if(b == NULL){
+    return b;/*aka return null*/
+  }else{
+    bst_delete(b->left);
+    bst_delete(b->right);
+
+    free(b->key);
+    free(b);
+    return b;
+  }
+}
